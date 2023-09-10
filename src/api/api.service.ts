@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
 import { SketchToImageReqDto, TextToImageReqDto } from './dto/api.dto';
 import Replicate from 'replicate';
+import { translate } from 'bing-translate-api';
 
 @Injectable()
 export class ApiService {
@@ -15,10 +16,19 @@ export class ApiService {
 
   async getStableGenerateImageData(reqDto: TextToImageReqDto): Promise<any> {
     try {
+      let newPrompt: string;
+      await translate(reqDto.prompt, null, 'en')
+        .then((res) => {
+          newPrompt = res.translation;
+        })
+        .catch((err) => {
+          throw Error(err);
+        });
+
       const reqUrl = 'https://stablediffusionapi.com/api/v3/text2img';
       const reqParam = {
         key: this.STABLE_API_KEY,
-        prompt: reqDto.prompt,
+        prompt: newPrompt,
         negative_prompt: null,
         width: '512',
         height: '512',
@@ -108,30 +118,42 @@ export class ApiService {
   }
 
   async getReplicateScribbleData(reqDto: SketchToImageReqDto): Promise<any> {
-    const { prompt, image } = reqDto;
-    const replicate = new Replicate({ auth: this.REPLICATE_API_TOKEN });
-    const output: any = await replicate.run(
-      'jagilley/controlnet-scribble:435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117',
-      {
-        input: {
-          image: image,
-          prompt: prompt,
-          num_samples: '4',
+    try {
+      const { prompt, image } = reqDto;
+      let newPrompt: string;
+      await translate(prompt, null, 'en')
+        .then((res) => {
+          newPrompt = res.translation;
+        })
+        .catch((err) => {
+          throw Error(err);
+        });
+
+      const replicate = new Replicate({ auth: this.REPLICATE_API_TOKEN });
+      const output: any = await replicate.run(
+        'jagilley/controlnet-scribble:435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117',
+        {
+          input: {
+            image: image,
+            prompt: newPrompt,
+            num_samples: '4',
+          },
         },
-      },
-    );
+      );
 
-    const imageUrls: string[] = output.slice(1);
+      const imageUrls: string[] = output.slice(1);
 
-    return {
-      statusCode: 200,
-      imageUrls: imageUrls,
-    };
+      return {
+        statusCode: 200,
+        imageUrls: imageUrls,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 }
 
 ///To-do
 // 2. 리턴 확인
 // 3. api 문서 작성
-// 5. aws translate 이용하기
 // 6. 배포 및 테스팅
