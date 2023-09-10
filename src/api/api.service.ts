@@ -1,17 +1,19 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
-import { GenerateImagesReqDto } from './dto/api.dto';
+import { SketchToImageReqDto, TextToImageReqDto } from './dto/api.dto';
+import Replicate from 'replicate';
 
 @Injectable()
 export class ApiService {
   private readonly STABLE_API_KEY = process.env.STABLE_API_KEY;
+  private readonly REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
   private readonly reqHeader = {
     headers: {
       'Content-Type': 'application/json',
     },
   };
 
-  async getStableGenerateImageData(reqDto: GenerateImagesReqDto): Promise<any> {
+  async getStableGenerateImageData(reqDto: TextToImageReqDto): Promise<any> {
     try {
       const reqUrl = 'https://stablediffusionapi.com/api/v3/text2img';
       const reqParam = {
@@ -39,7 +41,7 @@ export class ApiService {
 
       if (response.data.status === 'success') {
         const originalImageUrls = response.data.output;
-        const newImageUrls = await this.getReplacementDomain(originalImageUrls);
+        const newImageUrls = await this.replaceStableDomain(originalImageUrls);
 
         return {
           statusCode: 200,
@@ -52,7 +54,7 @@ export class ApiService {
         };
 
         const fetchdata = await this.getStableFetchData(reqParams);
-        const newImageUrls = await this.getReplacementDomain(fetchdata);
+        const newImageUrls = await this.replaceStableDomain(fetchdata);
         return {
           statusCode: 200,
           imageUrls: newImageUrls,
@@ -93,7 +95,7 @@ export class ApiService {
   }
 
   // Stable 한국 cdn 차단으로 Stable에서 알려준 아래의 대체 도메인으로 수정하는 함수
-  async getReplacementDomain(urlsArray) {
+  async replaceStableDomain(urlsArray) {
     const replacementDomain = 'cdn2.stablediffusionapi.com';
     const modifiedUrls = urlsArray.map((url) => {
       const parts = url.split('/generations/');
@@ -104,11 +106,32 @@ export class ApiService {
     });
     return modifiedUrls;
   }
+
+  async getReplicateScribbleData(reqDto: SketchToImageReqDto): Promise<any> {
+    const { prompt, image } = reqDto;
+    const replicate = new Replicate({ auth: this.REPLICATE_API_TOKEN });
+    const output: any = await replicate.run(
+      'jagilley/controlnet-scribble:435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117',
+      {
+        input: {
+          image: image,
+          prompt: prompt,
+          num_samples: '4',
+        },
+      },
+    );
+
+    const imageUrls: string[] = output.slice(1);
+
+    return {
+      statusCode: 200,
+      imageUrls: imageUrls,
+    };
+  }
 }
 
 ///To-do
 // 2. 리턴 확인
 // 3. api 문서 작성
-// 4. replicate 로직 처리
 // 5. aws translate 이용하기
 // 6. 배포 및 테스팅

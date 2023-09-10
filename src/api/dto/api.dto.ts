@@ -1,7 +1,17 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class GenerateImagesReqDto {
+export class TextToImageReqDto {
   @IsNotEmpty()
   @IsString()
   prompt: string;
+}
+
+export class SketchToImageReqDto {
+  @IsNotEmpty()
+  @IsString()
+  prompt: string;
+
+  @IsNotEmpty()
+  @IsString()
+  image: string;
 }
