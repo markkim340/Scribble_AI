@@ -152,8 +152,3 @@ export class ApiService {
     }
   }
 }
-
-///To-do
-// 2. 리턴 확인
-// 3. api 문서 작성
-// 6. 배포 및 테스팅

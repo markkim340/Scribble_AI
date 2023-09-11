@@ -1,18 +1,53 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiService } from './api.service';
-import { SketchToImageReqDto, TextToImageReqDto } from './dto/api.dto';
+import {
+  BadRequestResDto,
+  InternalServerErrorResDto,
+  SketchToImageReqDto,
+  SketchToImageResDto,
+  TextToImageReqDto,
+  TextToImageResDto,
+} from './dto/api.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('api')
+@ApiTags('API')
+@ApiResponse({
+  status: 400,
+  description: 'Bad Request',
+  type: BadRequestResDto,
+})
+@ApiResponse({
+  status: 500,
+  description: 'Server Error',
+  type: InternalServerErrorResDto,
+})
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
   @Post('textToImage')
+  @ApiOperation({
+    summary: '프롬프트를 전달받아 A.I 생성 이미지 리턴',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+    type: TextToImageResDto,
+  })
   async generateTextToImages(@Body() reqDto: TextToImageReqDto): Promise<any> {
     const data = await this.apiService.getStableGenerateImageData(reqDto);
     return data;
   }
 
   @Post('sketchToImage')
+  @ApiOperation({
+    summary: '프롬프트와 스케치 이미지를 전달받아 A.I 생성 이미지 리턴',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+    type: SketchToImageResDto,
+  })
   async generateSketchToImages(
     @Body() reqDto: SketchToImageReqDto,
   ): Promise<any> {
