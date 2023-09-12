@@ -1,4 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiService } from './api.service';
 import {
   BadRequestResDto,
@@ -8,7 +14,13 @@ import {
   TextToImageReqDto,
   TextToImageResDto,
 } from './dto/api.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api')
 @ApiTags('API')
@@ -41,17 +53,21 @@ export class ApiController {
 
   @Post('sketchToImage')
   @ApiOperation({
-    summary: '프롬프트와 스케치 이미지를 전달받아 A.I 생성 이미지 리턴',
+    summary: '프롬프트와 스케치 이미지 파일을 전달받아 A.I 생성 이미지 리턴',
   })
   @ApiResponse({
     status: 201,
     description: 'Success',
     type: SketchToImageResDto,
   })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
   async generateSketchToImages(
     @Body() reqDto: SketchToImageReqDto,
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<any> {
-    const data = await this.apiService.getReplicateScribbleData(reqDto);
+    console.log('TEST', file);
+    const data = await this.apiService.getReplicateScribbleData(reqDto, file);
     return data;
   }
 }

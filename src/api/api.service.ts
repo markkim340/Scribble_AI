@@ -3,6 +3,7 @@ import axios from 'axios';
 import { SketchToImageReqDto, TextToImageReqDto } from './dto/api.dto';
 import Replicate from 'replicate';
 import { translate } from 'bing-translate-api';
+import { AwsService } from 'src/aws/aws.service';
 
 @Injectable()
 export class ApiService {
@@ -13,6 +14,7 @@ export class ApiService {
       'Content-Type': 'application/json',
     },
   };
+  constructor(private readonly awsService: AwsService) {}
 
   async getStableGenerateImageData(reqDto: TextToImageReqDto): Promise<any> {
     try {
@@ -117,9 +119,14 @@ export class ApiService {
     return modifiedUrls;
   }
 
-  async getReplicateScribbleData(reqDto: SketchToImageReqDto): Promise<any> {
+  async getReplicateScribbleData(
+    reqDto: SketchToImageReqDto,
+    file: any,
+  ): Promise<any> {
     try {
-      const { prompt, image } = reqDto;
+      // const { prompt } = reqDto;
+      const prompt = '사람';
+
       let newPrompt: string;
       await translate(prompt, null, 'en')
         .then((res) => {
@@ -129,12 +136,16 @@ export class ApiService {
           throw Error(err);
         });
 
+      const sketchImageLocation = await this.awsService.s3UploadToSketchImages(
+        file,
+      );
+
       const replicate = new Replicate({ auth: this.REPLICATE_API_TOKEN });
       const output: any = await replicate.run(
         'jagilley/controlnet-scribble:435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117',
         {
           input: {
-            image: image,
+            image: sketchImageLocation,
             prompt: newPrompt,
             num_samples: '4',
           },

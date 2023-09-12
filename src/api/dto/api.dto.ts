@@ -33,8 +33,8 @@ export class TextToImageResDto {
 }
 
 export class SketchToImageReqDto {
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   @ApiProperty({
     example: '장난감 자동차',
     description: '생성하고 싶은 이미지에 대한 내용을 구체적으로 작성',
@@ -43,14 +43,20 @@ export class SketchToImageReqDto {
   prompt: string;
 
   @IsNotEmpty()
-  @IsString()
   @ApiProperty({
-    example:
-      'https://www.australiancurriculumlessons.com.au/wp-content/uploads/2016/07/Sketching-Art-Lesson.png',
-    description: '생성하고 싶은 이미지에 스케치 이미지 url',
-    required: true,
+    type: 'object',
+    format: 'binary',
+    description: 'User-drawn sketch image file (Blob format)',
+    example: {
+      fieldname: 'file',
+      originalname: 'my_sketch1.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      buffer: `<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 02 58 00 00 01 f4 08 06 00 00 00 e1 50 53 d4 00 00 00 01 73 52 47 42 00 ae ce 1c e9 00 00 20 00 ... 23680 more bytes>`,
+      size: 23730,
+    },
   })
-  image: string;
+  file: Express.Multer.File;
 }
 
 export class SketchToImageResDto {
