@@ -73,6 +73,7 @@ export class ApiService {
         };
       }
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(error);
     }
   }
@@ -124,8 +125,7 @@ export class ApiService {
     file: any,
   ): Promise<any> {
     try {
-      // const { prompt } = reqDto;
-      const prompt = '사람';
+      const { prompt } = reqDto;
 
       let newPrompt: string;
       await translate(prompt, null, 'en')
@@ -148,6 +148,7 @@ export class ApiService {
             image: sketchImageLocation,
             prompt: newPrompt,
             num_samples: '4',
+            n_prompt: 'NSFW',
           },
         },
       );
@@ -159,6 +160,7 @@ export class ApiService {
         imageUrls: imageUrls,
       };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(error);
     }
   }

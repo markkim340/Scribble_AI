@@ -66,7 +66,6 @@ export class ApiController {
     @Body() reqDto: SketchToImageReqDto,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<any> {
-    console.log('TEST', file);
     const data = await this.apiService.getReplicateScribbleData(reqDto, file);
     return data;
   }

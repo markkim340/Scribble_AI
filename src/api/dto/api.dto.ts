@@ -33,8 +33,8 @@ export class TextToImageResDto {
 }
 
 export class SketchToImageReqDto {
-  // @IsNotEmpty()
-  // @IsString()
+  @IsNotEmpty()
+  @IsString()
   @ApiProperty({
     example: '장난감 자동차',
     description: '생성하고 싶은 이미지에 대한 내용을 구체적으로 작성',
@@ -42,7 +42,6 @@ export class SketchToImageReqDto {
   })
   prompt: string;
 
-  @IsNotEmpty()
   @ApiProperty({
     type: 'object',
     format: 'binary',
