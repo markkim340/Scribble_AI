@@ -14,7 +14,7 @@ import { S3, SharedIniFileCredentials } from 'aws-sdk';
       defaultServiceOptions: {
         region: 'ap-northeast-2',
         credentials: new SharedIniFileCredentials({
-          profile: 'ttv',
+          profile: 'bara',
         }),
         httpOptions: {
           timeout: 180000,
